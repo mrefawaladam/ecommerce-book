@@ -1,10 +1,10 @@
-package models
+package entity
 
 import (
 	"gorm.io/gorm"
 )
 
-type UserModel struct {
+type User struct {
 	*gorm.Model
 
 	Name     string `json:"name" form:"name" validate:"required"`
