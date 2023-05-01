@@ -38,3 +38,8 @@ func (usecase Usecase) SearchUser(id int) error {
 	err := usecase.Repo.SearchUser(id)
 	return err
 }
+
+func (usecase Usecase) UniqueEmail(email string) error {
+	err := usecase.Repo.UniqueEmail(email)
+	return err
+}

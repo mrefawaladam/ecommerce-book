@@ -6,5 +6,6 @@ import (
 
 func main() {
 	e := r.InitRoutes()
+	e.Debug = true //
 	e.Logger.Fatal(e.Start(":1323"))
 }

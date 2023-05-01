@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ebook/internal/entity"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ type Repository struct {
 
 func (repo Repository) GetAllUsers() ([]entity.User, error) {
 	var users []entity.User
-	result := repo.DB.Preload("Blogs", "deleted_at IS NULL").Find(&users)
+	result := repo.DB.Preload("Address", "deleted_at IS NULL").Find(&users)
 	// result := repo.DB.Find(&users)
 
 	return users, result.Error
@@ -44,4 +45,12 @@ func (repo Repository) DeleteUser(id int) error {
 func (repo Repository) SearchUser(id int) error {
 	result := repo.DB.First(&entity.User{}, id)
 	return result.Error
+}
+func (repo Repository) UniqueEmail(email string) error {
+	var user entity.User
+	result := repo.DB.Where("email = ?", email).First(&user)
+	if result.RowsAffected > 0 {
+		return fmt.Errorf("email %s already exists", email)
+	}
+	return nil
 }
