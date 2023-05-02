@@ -42,9 +42,17 @@ func (repo Repository) DeleteUser(id int) error {
 	return result.Error
 }
 
-func (repo Repository) SearchUser(id int) error {
+func (repo Repository) FindUser(id int) error {
 	result := repo.DB.First(&entity.User{}, id)
 	return result.Error
+}
+func (repo Repository) FindByEmail(email string) (*entity.User, error) {
+	var user entity.User
+	err := repo.DB.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 func (repo Repository) UniqueEmail(email string) error {
 	var user entity.User

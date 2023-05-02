@@ -34,12 +34,15 @@ func (usecase Usecase) DeleteUser(id int) error {
 	return err
 }
 
-func (usecase Usecase) SearchUser(id int) error {
-	err := usecase.Repo.SearchUser(id)
+func (usecase Usecase) FindUser(id int) error {
+	err := usecase.Repo.FindUser(id)
 	return err
 }
 
 func (usecase Usecase) UniqueEmail(email string) error {
 	err := usecase.Repo.UniqueEmail(email)
 	return err
+}
+func (usecase Usecase) GetUserByEmail(email string) (*entity.User, error) {
+	return usecase.Repo.FindByEmail(email)
 }

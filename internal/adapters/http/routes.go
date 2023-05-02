@@ -11,14 +11,14 @@ import (
 
 var (
 	userRepo    repository.Repository
-	userHandler handler.Handler
+	userHandler handler.HandlerUser
 	userUsecase usecase.Usecase
 )
 
 func declare() {
 	userRepo = repository.Repository{DB: db.DbMysql}
 	userUsecase = usecase.Usecase{Repo: userRepo}
-	userHandler = handler.Handler{Usecase: userUsecase}
+	userHandler = handler.HandlerUser{Usecase: userUsecase}
 
 }
 

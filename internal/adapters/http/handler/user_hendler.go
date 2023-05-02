@@ -12,11 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Handler struct {
+type HandlerUser struct {
 	Usecase usecase.Usecase
 }
 
-func (handler Handler) GetAllUsers() echo.HandlerFunc {
+func (handler HandlerUser) GetAllUsers() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var users []entity.User
 
@@ -34,7 +34,7 @@ func (handler Handler) GetAllUsers() echo.HandlerFunc {
 	}
 }
 
-func (handler Handler) GetUser() echo.HandlerFunc {
+func (handler HandlerUser) GetUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var user entity.User
 		id, err := strconv.Atoi(e.Param("id"))
@@ -44,7 +44,7 @@ func (handler Handler) GetUser() echo.HandlerFunc {
 			})
 		}
 
-		err = handler.Usecase.SearchUser(id)
+		err = handler.Usecase.FindUser(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
@@ -65,7 +65,7 @@ func (handler Handler) GetUser() echo.HandlerFunc {
 	}
 }
 
-func (handler Handler) CreateUser() echo.HandlerFunc {
+func (handler HandlerUser) CreateUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var user entity.User
 		if err := e.Bind(&user); err != nil {
@@ -100,7 +100,7 @@ func (handler Handler) CreateUser() echo.HandlerFunc {
 	}
 }
 
-func (handler Handler) UpdateUser() echo.HandlerFunc {
+func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
 	var user entity.User
 
 	return func(e echo.Context) error {
@@ -111,7 +111,7 @@ func (handler Handler) UpdateUser() echo.HandlerFunc {
 			})
 		}
 
-		err = handler.Usecase.SearchUser(id)
+		err = handler.Usecase.FindUser(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
@@ -137,7 +137,7 @@ func (handler Handler) UpdateUser() echo.HandlerFunc {
 	}
 }
 
-func (handler Handler) DeleteUser() echo.HandlerFunc {
+func (handler HandlerUser) DeleteUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		id, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -146,7 +146,7 @@ func (handler Handler) DeleteUser() echo.HandlerFunc {
 			})
 		}
 
-		err = handler.Usecase.SearchUser(id)
+		err = handler.Usecase.FindUser(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
