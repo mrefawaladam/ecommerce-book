@@ -12,11 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type HandlerUser struct {
-	Usecase usecase.Usecase
+type UserHandler struct {
+	Usecase usecase.UserUsecase
 }
 
-func (handler HandlerUser) GetAllUsers() echo.HandlerFunc {
+func (handler UserHandler) GetAllUsers() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var users []entity.User
 
@@ -34,7 +34,7 @@ func (handler HandlerUser) GetAllUsers() echo.HandlerFunc {
 	}
 }
 
-func (handler HandlerUser) GetUser() echo.HandlerFunc {
+func (handler UserHandler) GetUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var user entity.User
 		id, err := strconv.Atoi(e.Param("id"))
@@ -65,7 +65,7 @@ func (handler HandlerUser) GetUser() echo.HandlerFunc {
 	}
 }
 
-func (handler HandlerUser) CreateUser() echo.HandlerFunc {
+func (handler UserHandler) CreateUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var user entity.User
 		if err := e.Bind(&user); err != nil {
@@ -100,7 +100,7 @@ func (handler HandlerUser) CreateUser() echo.HandlerFunc {
 	}
 }
 
-func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
+func (handler UserHandler) UpdateUser() echo.HandlerFunc {
 	var user entity.User
 
 	return func(e echo.Context) error {
@@ -137,7 +137,7 @@ func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
 	}
 }
 
-func (handler HandlerUser) DeleteUser() echo.HandlerFunc {
+func (handler UserHandler) DeleteUser() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		id, err := strconv.Atoi(e.Param("id"))
 		if err != nil {

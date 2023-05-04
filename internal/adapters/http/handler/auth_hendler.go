@@ -15,7 +15,7 @@ import (
 )
 
 type AuthHandler struct {
-	Usecase usecase.Usecase
+	Usecase usecase.UserUsecase
 }
 
 func (handler AuthHandler) Register() echo.HandlerFunc {

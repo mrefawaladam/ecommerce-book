@@ -12,17 +12,18 @@ import (
 )
 
 var (
-	userRepo    repository.Repository
-	userHandler handler.HandlerUser
-	userUsecase usecase.Usecase
+	userRepo    repository.UserRepository
+	userHandler handler.UserHandler
+	userUsecase usecase.UserUsecase
 
 	AuthHandler handler.AuthHandler
 )
 
 func declare() {
-	userRepo = repository.Repository{DB: db.DbMysql}
-	userUsecase = usecase.Usecase{Repo: userRepo}
-	userHandler = handler.HandlerUser{Usecase: userUsecase}
+	userRepo = repository.UserRepository{DB: db.DbMysql}
+	userUsecase = usecase.UserUsecase{Repo: userRepo}
+	userHandler = handler.UserHandler{Usecase: userUsecase}
+
 	AuthHandler = handler.AuthHandler{Usecase: userUsecase}
 }
 
@@ -34,6 +35,7 @@ func InitRoutes() *echo.Echo {
 	e.POST("/login", AuthHandler.Login())
 	e.POST("/registrasi", AuthHandler.Register())
 
+	// admin group
 	admin := e.Group("/admin")
 	admin.Use(middleware.Logger())
 	admin.Use(middlewares.AuthMiddleware())
@@ -44,6 +46,18 @@ func InitRoutes() *echo.Echo {
 	admin.POST("/users", userHandler.CreateUser())
 	admin.DELETE("/users/:id", userHandler.DeleteUser())
 	admin.PUT("/users/:id", userHandler.UpdateUser())
+
+	// seller group
+	seller := e.Group("/seller")
+	seller.Use(middleware.Logger())
+	seller.Use(middlewares.AuthMiddleware())
+	seller.Use(middlewares.RequireRole("seller"))
+
+	seller.GET("/users", userHandler.GetAllUsers())
+	seller.GET("/users/:id", userHandler.GetUser())
+	seller.POST("/users", userHandler.CreateUser())
+	seller.DELETE("/users/:id", userHandler.DeleteUser())
+	seller.PUT("/users/:id", userHandler.UpdateUser())
 
 	return e
 }

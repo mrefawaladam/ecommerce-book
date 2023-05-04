@@ -7,19 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+type BookRepository struct {
 	DB *gorm.DB
 }
 
-func (repo UserRepository) GetAllUsers() ([]entity.User, error) {
-	var users []entity.User
-	result := repo.DB.Preload("Address", "deleted_at IS NULL").Find(&users)
-	// result := repo.DB.Find(&users)
+func (repo BookRepository) GetAllBooks() ([]entity.Book, error) {
+	var books []entity.Book
+	result := repo.DB.Preload("Category", "deleted_at IS NULL").Find(&books)
 
-	return users, result.Error
+	return books, result.Error
 }
 
-func (repo UserRepository) GetUser(id int) (entity.User, error) {
+func (repo BookRepository) GetUser(id int) (entity.User, error) {
 	var users entity.User
 	result := repo.DB.Preload("Blogs", "deleted_at IS NULL").First(&users, id)
 	// result := repo.DB.First(&users, id)
@@ -27,26 +26,26 @@ func (repo UserRepository) GetUser(id int) (entity.User, error) {
 	return users, result.Error
 }
 
-func (repo UserRepository) CreateUser(user entity.User) error {
+func (repo BookRepository) CreateUser(user entity.User) error {
 	result := repo.DB.Create(&user)
 	return result.Error
 }
 
-func (repo UserRepository) UpdateUser(id int, user entity.User) error {
+func (repo BookRepository) UpdateUser(id int, user entity.User) error {
 	result := repo.DB.Model(&user).Where("id = ?", id).Updates(&user)
 	return result.Error
 }
 
-func (repo UserRepository) DeleteUser(id int) error {
+func (repo BookRepository) DeleteUser(id int) error {
 	result := repo.DB.Delete(&entity.User{}, id)
 	return result.Error
 }
 
-func (repo UserRepository) FindUser(id int) error {
+func (repo BookRepository) FindUser(id int) error {
 	result := repo.DB.First(&entity.User{}, id)
 	return result.Error
 }
-func (repo UserRepository) FindByEmail(email string) (*entity.User, error) {
+func (repo BookRepository) FindByEmail(email string) (*entity.User, error) {
 	var user entity.User
 	err := repo.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -54,7 +53,7 @@ func (repo UserRepository) FindByEmail(email string) (*entity.User, error) {
 	}
 	return &user, nil
 }
-func (repo UserRepository) UniqueEmail(email string) error {
+func (repo BookRepository) UniqueEmail(email string) error {
 	var user entity.User
 	result := repo.DB.Where("email = ?", email).First(&user)
 	if result.RowsAffected > 0 {
