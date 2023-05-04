@@ -2,7 +2,6 @@ package repository
 
 import (
 	"ebook/internal/entity"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -18,46 +17,28 @@ func (repo BookRepository) GetAllBooks() ([]entity.Book, error) {
 	return books, result.Error
 }
 
-func (repo BookRepository) GetUser(id int) (entity.User, error) {
-	var users entity.User
-	result := repo.DB.Preload("Blogs", "deleted_at IS NULL").First(&users, id)
-	// result := repo.DB.First(&users, id)
-
-	return users, result.Error
+func (repo BookRepository) GetBook(id int) (entity.Book, error) {
+	var books entity.Book
+	result := repo.DB.Preload("Category", "deleted_at IS NULL").First(&books, id)
+	return books, result.Error
 }
 
-func (repo BookRepository) CreateUser(user entity.User) error {
-	result := repo.DB.Create(&user)
+func (repo BookRepository) CreateBook(book entity.Book) error {
+	result := repo.DB.Create(&book)
 	return result.Error
 }
 
-func (repo BookRepository) UpdateUser(id int, user entity.User) error {
-	result := repo.DB.Model(&user).Where("id = ?", id).Updates(&user)
+func (repo BookRepository) UpdateBook(id int, book entity.Book) error {
+	result := repo.DB.Model(&book).Where("id = ?", id).Updates(&book)
 	return result.Error
 }
 
-func (repo BookRepository) DeleteUser(id int) error {
-	result := repo.DB.Delete(&entity.User{}, id)
+func (repo BookRepository) DeleteBook(id int) error {
+	result := repo.DB.Delete(&entity.Book{}, id)
 	return result.Error
 }
 
-func (repo BookRepository) FindUser(id int) error {
-	result := repo.DB.First(&entity.User{}, id)
+func (repo BookRepository) FindBook(id int) error {
+	result := repo.DB.First(&entity.Book{}, id)
 	return result.Error
-}
-func (repo BookRepository) FindByEmail(email string) (*entity.User, error) {
-	var user entity.User
-	err := repo.DB.Where("email = ?", email).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-func (repo BookRepository) UniqueEmail(email string) error {
-	var user entity.User
-	result := repo.DB.Where("email = ?", email).First(&user)
-	if result.RowsAffected > 0 {
-		return fmt.Errorf("email %s already exists", email)
-	}
-	return nil
 }
