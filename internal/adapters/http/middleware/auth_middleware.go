@@ -27,6 +27,21 @@ func CreateToken(userID int, email string, role string) (string, error) {
 
 	return tokenString, nil
 }
+func RequireRole(role string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			user := c.Get("user").(*jwt.Token)
+			claims := user.Claims.(*jwt.MapClaims)
+			userRole := (*claims)["role"].(string)
+
+			if userRole != role {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized access"})
+			}
+
+			return next(c)
+		}
+	}
+}
 
 func AuthMiddleware() echo.MiddlewareFunc {
 	return middleware.JWTWithConfig(middleware.JWTConfig{
