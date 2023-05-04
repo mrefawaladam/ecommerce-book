@@ -7,10 +7,6 @@ import (
 	repository "ebook/internal/adapters/repository"
 	usecase "ebook/internal/application/usecase"
 
-	"fmt"
-	"net/http"
-
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -38,25 +34,16 @@ func InitRoutes() *echo.Echo {
 	e.POST("/login", AuthHandler.Login())
 	e.POST("/registrasi", AuthHandler.Register())
 
-	// middleware
-	e.Use(middleware.Logger())
-	// protected route
+	admin := e.Group("/admin")
+	admin.Use(middleware.Logger())
+	admin.Use(middlewares.AuthMiddleware())
+	admin.Use(middlewares.RequireRole("admin"))
 
-	protected := e.Group("/protected")
-	protected.Use(middlewares.AuthMiddleware())
-	protected.GET("", func(c echo.Context) error {
-		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(*jwt.MapClaims)
-		userID := int((*claims)["id"].(float64))
-		return c.String(http.StatusOK, fmt.Sprintf("User ID: %d", userID))
-	})
-
-	user := e.Group("/users")
-	user.GET("", userHandler.GetAllUsers())
-	user.GET("/:id", userHandler.GetUser())
-	user.POST("", userHandler.CreateUser())
-	user.DELETE("/:id", userHandler.DeleteUser())
-	user.PUT("/:id", userHandler.UpdateUser())
+	admin.GET("/users", userHandler.GetAllUsers())
+	admin.GET("/users/:id", userHandler.GetUser())
+	admin.POST("/users", userHandler.CreateUser())
+	admin.DELETE("/users/:id", userHandler.DeleteUser())
+	admin.PUT("/users/:id", userHandler.UpdateUser())
 
 	return e
 }
