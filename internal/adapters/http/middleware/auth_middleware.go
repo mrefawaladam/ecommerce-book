@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const SECRET_JWT = "123"
@@ -30,8 +31,8 @@ func RequireRole(role string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			user := c.Get("user").(*jwt.Token)
-			claims := user.Claims.(jwt.MapClaims)
-			userRole := claims["role"].(string)
+			claims := user.Claims.(*jwt.MapClaims)
+			userRole := (*claims)["role"].(string)
 
 			if userRole != role {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized access"})
@@ -43,37 +44,14 @@ func RequireRole(role string) echo.MiddlewareFunc {
 }
 
 func AuthMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			tokenString := c.Request().Header.Get("Authorization")
-			if tokenString == "" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Token is missing"})
+	return middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte(SECRET_JWT),
+		ErrorHandler: func(err error) error {
+			if _, ok := err.(*jwt.ValidationError); ok {
+				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
 			}
-
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, echo.NewHTTPError(http.StatusBadRequest, "Invalid token")
-				}
-				return []byte(SECRET_JWT), nil
-			})
-
-			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token"})
-			}
-
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || !token.Valid {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token"})
-			}
-
-			userID, ok := claims["id"].(float64)
-			if !ok {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token"})
-			}
-
-			c.Set("userID", int(userID))
-
-			return next(c)
-		}
-	}
+			return err
+		},
+		Claims: &jwt.MapClaims{},
+	})
 }
