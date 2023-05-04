@@ -8,6 +8,7 @@ import (
 	"ebook/internal/entity"
 
 	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -64,7 +65,6 @@ func (handler BookHandler) GetBook() echo.HandlerFunc {
 		})
 	}
 }
-
 func (handler BookHandler) CreateBook() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var book entity.Book
@@ -76,10 +76,15 @@ func (handler BookHandler) CreateBook() echo.HandlerFunc {
 		if err := validate.Struct(book); err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]interface{}{"message": "Validation errors", "errors": err.Error()})
 		}
+		user := e.Get("user").(*jwt.Token)
+		claims := user.Claims.(*jwt.MapClaims)
+		sellerID := int((*claims)["id"].(float64))
+		book.SellerId = uint(sellerID)
+
 		var err error
 		err = handler.BookUsecase.CreateBook(book)
 		if err != nil {
-			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create user"})
+			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create book"})
 		}
 
 		return e.JSON(http.StatusCreated, book)
