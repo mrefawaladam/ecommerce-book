@@ -8,19 +8,19 @@ import (
 	"ebook/internal/entity"
 
 	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
-	"golang.org/x/crypto/bcrypt"
 )
 
-type HandlerUser struct {
-	Usecase usecase.Usecase
+type BookHandler struct {
+	BookUsecase usecase.BookUsecase
 }
 
-func (handler HandlerUser) GetAllUsers() echo.HandlerFunc {
+func (handler BookHandler) GetAllBooks() echo.HandlerFunc {
 	return func(e echo.Context) error {
-		var users []entity.User
+		var books []entity.Book
 
-		users, err := handler.Usecase.GetAllUsers()
+		books, err := handler.BookUsecase.GetAllBooks()
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"error": err.Error(),
@@ -28,30 +28,31 @@ func (handler HandlerUser) GetAllUsers() echo.HandlerFunc {
 		}
 
 		return e.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get all users",
-			"users":   users,
+			"message": "success get all books",
+			"books":   books,
 		})
 	}
 }
 
-func (handler HandlerUser) GetUser() echo.HandlerFunc {
+func (handler BookHandler) GetBook() echo.HandlerFunc {
 	return func(e echo.Context) error {
-		var user entity.User
+		var book entity.Book
 		id, err := strconv.Atoi(e.Param("id"))
+
 		if err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]interface{}{
 				"messages": "input id is not a number",
 			})
 		}
 
-		err = handler.Usecase.FindUser(id)
+		err = handler.BookUsecase.FindBook(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
 			})
 		}
 
-		user, err = handler.Usecase.GetUser(id)
+		book, err = handler.BookUsecase.GetBook(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"error": err.Error(),
@@ -59,49 +60,39 @@ func (handler HandlerUser) GetUser() echo.HandlerFunc {
 		}
 
 		return e.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get user",
-			"user":    user,
+			"message": "success get book",
+			"book":    book,
 		})
 	}
 }
-
-func (handler HandlerUser) CreateUser() echo.HandlerFunc {
+func (handler BookHandler) CreateBook() echo.HandlerFunc {
 	return func(e echo.Context) error {
-		var user entity.User
-		if err := e.Bind(&user); err != nil {
+		var book entity.Book
+		if err := e.Bind(&book); err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid request body"})
 		}
 
-		// Validasi input menggunakan package validator
 		validate := validator.New()
-		if err := validate.Struct(user); err != nil {
+		if err := validate.Struct(book); err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]interface{}{"message": "Validation errors", "errors": err.Error()})
 		}
+		user := e.Get("user").(*jwt.Token)
+		claims := user.Claims.(*jwt.MapClaims)
+		sellerID := int((*claims)["id"].(float64))
+		book.SellerId = uint(sellerID)
 
-		// Validasi email unik
-		if err := handler.Usecase.UniqueEmail(user.Email); err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		var err error
+		err = handler.BookUsecase.CreateBook(book)
 		if err != nil {
-			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create user"})
-		}
-		user.Password = string(hashedPassword)
-		// Set Role default cutomer
-		user.Role = "customer"
-
-		err = handler.Usecase.CreateUser(user)
-		if err != nil {
-			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create user"})
+			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create book"})
 		}
 
-		return e.JSON(http.StatusCreated, user)
+		return e.JSON(http.StatusCreated, book)
 	}
 }
 
-func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
-	var user entity.User
+func (handler BookHandler) UpdateBook() echo.HandlerFunc {
+	var book entity.Book
 
 	return func(e echo.Context) error {
 		id, err := strconv.Atoi(e.Param("id"))
@@ -111,20 +102,20 @@ func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
 			})
 		}
 
-		err = handler.Usecase.FindUser(id)
+		err = handler.BookUsecase.FindBook(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
 			})
 		}
 
-		if err := e.Bind(&user); err != nil {
+		if err := e.Bind(&book); err != nil {
 			return e.JSON(400, echo.Map{
 				"error": err.Error(),
 			})
 		}
 
-		err = handler.Usecase.UpdateUser(id, user)
+		err = handler.BookUsecase.UpdateBook(id, book)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"error": err.Error(),
@@ -132,12 +123,12 @@ func (handler HandlerUser) UpdateUser() echo.HandlerFunc {
 		}
 
 		return e.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success update user",
+			"message": "success update book",
 		})
 	}
 }
 
-func (handler HandlerUser) DeleteUser() echo.HandlerFunc {
+func (handler BookHandler) DeleteBook() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		id, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -146,14 +137,14 @@ func (handler HandlerUser) DeleteUser() echo.HandlerFunc {
 			})
 		}
 
-		err = handler.Usecase.FindUser(id)
+		err = handler.BookUsecase.FindBook(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"message": "Record Not Found",
 			})
 		}
 
-		err = handler.Usecase.DeleteUser(id)
+		err = handler.BookUsecase.DeleteBook(id)
 		if err != nil {
 			return e.JSON(500, echo.Map{
 				"error": err.Error(),
@@ -161,7 +152,7 @@ func (handler HandlerUser) DeleteUser() echo.HandlerFunc {
 		}
 
 		return e.JSON(http.StatusOK, map[string]interface{}{
-			"message": "Success Delete User`",
+			"message": "Success Delete Book`",
 		})
 	}
 }
