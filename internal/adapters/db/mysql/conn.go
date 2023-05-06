@@ -49,8 +49,11 @@ func AutoMigrate() {
 		&entity.User{},
 		&entity.Address{},
 		&entity.Order{},
+		&entity.OrderItem{},
 		&entity.Book{},
 		&entity.Category{},
+		&entity.Store{},
+		&entity.Payment{},
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %s", err.Error())
