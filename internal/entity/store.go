@@ -7,7 +7,7 @@ import (
 type Store struct {
 	*gorm.Model
 
-	Name        string `json:"name" form:"total_price" `
+	Name        string `json:"name" form:"name" `
 	Address     string `json:"address" form:"address" `
 	Profile     string `json:"profile" form:"profile" `
 	PhoneNumber string `json:"phone_number" form:"phone_number" `

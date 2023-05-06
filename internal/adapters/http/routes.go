@@ -20,6 +20,10 @@ var (
 	bookRepo    repository.BookRepository
 	bookHandler handler.BookHandler
 	bookUsecase usecase.BookUsecase
+	// store management
+	storeRepo    repository.StoreRepository
+	storeHandler handler.StoreHandler
+	storeUsecase usecase.StoreUsecase
 	// auth
 	AuthHandler handler.AuthHandler
 )
@@ -32,6 +36,10 @@ func declare() {
 	bookRepo = repository.BookRepository{DB: db.DbMysql}
 	bookUsecase = usecase.BookUsecase{Repo: bookRepo}
 	bookHandler = handler.BookHandler{BookUsecase: bookUsecase}
+	// declare store management
+	storeRepo = repository.StoreRepository{DB: db.DbMysql}
+	storeUsecase = usecase.StoreUsecase{Repo: storeRepo}
+	storeHandler = handler.StoreHandler{StoreUsecase: storeUsecase}
 
 	AuthHandler = handler.AuthHandler{Usecase: userUsecase}
 }
@@ -56,6 +64,9 @@ func InitRoutes() *echo.Echo {
 	admin.DELETE("/users/:id", userHandler.DeleteUser())
 	admin.PUT("/users/:id", userHandler.UpdateUser())
 
+	admin.GET("/stores", storeHandler.GetAllStores())
+	admin.DELETE("/stores/:id", storeHandler.DeleteStore())
+
 	// seller group
 	seller := e.Group("/seller")
 	seller.Use(middleware.Logger())
@@ -68,5 +79,17 @@ func InitRoutes() *echo.Echo {
 	seller.DELETE("/books/:id", bookHandler.DeleteBook())
 	seller.PUT("/books/:id", bookHandler.UpdateBook())
 
+	seller.GET("/stores/my/:id", storeHandler.GetStore())
+	seller.PUT("/stores/:id", storeHandler.UpdateStore())
+
+	// seller group
+	customer := e.Group("/customer")
+	customer.Use(middleware.Logger())
+	customer.Use(middlewares.AuthMiddleware())
+	customer.Use(middlewares.RequireRole("customer"))
+
+	// claims store
+	customer.POST("/stores/claims", storeHandler.CreateStore())
+	customer.GET("/books", bookHandler.GetAllBooks())
 	return e
 }
