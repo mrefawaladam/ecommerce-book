@@ -26,6 +26,10 @@ var (
 	storeUsecase usecase.StoreUsecase
 	// auth
 	AuthHandler handler.AuthHandler
+	// transaction
+	transactionHandler handler.TransactionHandler
+	orderItemUsecase   usecase.OrderItemsUsecase
+	orderUsecase       usecase.OrderUsecase
 )
 
 func declare() {
@@ -40,6 +44,11 @@ func declare() {
 	storeRepo = repository.StoreRepository{DB: db.DbMysql}
 	storeUsecase = usecase.StoreUsecase{Repo: storeRepo}
 	storeHandler = handler.StoreHandler{StoreUsecase: storeUsecase}
+	// transaction
+	transactionHandler = handler.TransactionHandler{
+		Usecase:           userUsecase,
+		OrderITemsUsecase: orderItemUsecase,
+		OrdeUsecase:       orderUsecase}
 
 	AuthHandler = handler.AuthHandler{Usecase: userUsecase}
 }
@@ -91,5 +100,13 @@ func InitRoutes() *echo.Echo {
 	// claims store
 	customer.POST("/stores/claims", storeHandler.CreateStore())
 	customer.GET("/books", bookHandler.GetAllBooks())
+	customer.GET("/books", bookHandler.GetAllBooks())
+
+	// transactions
+	customer.POST("/checkout", transactionHandler.CheckoutTransaction())
+
+	// get all ebooks
+	customer.GET("/books", bookHandler.GetAllBooks())
+
 	return e
 }

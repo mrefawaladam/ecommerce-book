@@ -11,5 +11,6 @@ type User struct {
 	Email    string    `json:"email" form:"email" validate:"required,email" `
 	Password string    `json:"password" form:"password" validate:"required"`
 	Role     string    `gorm:"default:customer"`
+	Phone    string    `json:"phone" form:"phone" validate:"required"`
 	Address  []Address `gorm:"foreignKey:UserID"`
 }
