@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"ebook/internal/adapters/repository"
+	"ebook/internal/entity"
 	"fmt"
 
 	"github.com/midtrans/midtrans-go"
@@ -16,6 +17,16 @@ type OrderUsecase struct {
 func (uc *OrderUsecase) GetLastOrderID() (uint, error) {
 	stores, err := uc.OrderRepo.GetLastOrderID()
 	return stores, err
+}
+
+func (usecase OrderUsecase) CreateOrder(user entity.Order) error {
+	err := usecase.OrderRepo.CreateOrder(user)
+	return err
+}
+
+func (usecase OrderUsecase) UpdateOrder(id int, order entity.Order) error {
+	err := usecase.OrderRepo.UpdateOrder(id, order)
+	return err
 }
 
 // GenerateSnapReq creates a Snap Request object for generating payment token for a specific order.
@@ -41,6 +52,7 @@ func (uc *OrderUsecase) GenerateSnapReq(OrderID uint, UserID int, TotalPrice int
 	// Set customer detail data
 	custAddress := &midtrans.CustomerAddress{
 		FName:       user.Name,
+		LName:       "Doe",
 		Phone:       user.Phone,
 		Address:     address.Street,
 		City:        address.City,
@@ -49,6 +61,7 @@ func (uc *OrderUsecase) GenerateSnapReq(OrderID uint, UserID int, TotalPrice int
 	}
 	custDetail := &midtrans.CustomerDetails{
 		FName:    user.Name,
+		LName:    "Doe",
 		Email:    user.Email,
 		Phone:    user.Phone,
 		BillAddr: custAddress,
@@ -57,6 +70,7 @@ func (uc *OrderUsecase) GenerateSnapReq(OrderID uint, UserID int, TotalPrice int
 
 	// Create ItemDetails array for Snap Request
 	var itemDetails []midtrans.ItemDetails
+	var totalPrice int64 = 0
 	for _, bo := range bookOrders {
 		itemDetails = append(itemDetails, midtrans.ItemDetails{
 			ID:    bo.BookId,
@@ -64,13 +78,19 @@ func (uc *OrderUsecase) GenerateSnapReq(OrderID uint, UserID int, TotalPrice int
 			Qty:   int32(bo.Quantity),
 			Name:  bo.Book.Title,
 		})
+		totalPrice += int64(bo.Book.Price) * int64(bo.Quantity)
 	}
+
+	// Check if the TotalPrice is equal to the sum of Price * Quantity
+	// if totalPrice != int64(TotalPrice) {
+	// 	return nil, fmt.Errorf("TotalPrice is not equal to the sum of Price * Quantity")
+	// }
 
 	// Create Snap Request object
 	snapReq := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  fmt.Sprint(OrderID),
-			GrossAmt: int64(TotalPrice),
+			GrossAmt: int64(totalPrice),
 		},
 		CreditCard: &snap.CreditCardDetails{
 			Secure: true,

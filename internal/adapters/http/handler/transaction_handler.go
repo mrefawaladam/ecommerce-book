@@ -2,11 +2,13 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"ebook/internal/application/service"
 	"ebook/internal/application/usecase"
 	"ebook/internal/entity"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,26 +18,53 @@ type TransactionHandler struct {
 	OrdeUsecase       usecase.OrderUsecase
 }
 
+func (handler TransactionHandler) CheckoutTransactionss() echo.HandlerFunc {
+	return func(e echo.Context) error {
+
+		var orderItemsReq struct {
+			OrderItems []entity.OrderItem `json:"order_items"`
+		}
+		if err := e.Bind(&orderItemsReq); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+		}
+		return e.JSON(http.StatusOK, orderItemsReq.OrderItems)
+	}
+}
+
 func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
-		// var order []entity.Order
-
+		var order entity.Order
+		err := handler.OrdeUsecase.CreateOrder(order)
+		if err != nil {
+			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create user"})
+		}
 		// Get UserID
-		// user := e.Get("user").(*jwt.Token)
-		// claims := user.Claims.(*jwt.MapClaims)
-		// UserID := int((*claims)["id"].(float64))
+		user := e.Get("user").(*jwt.Token)
+		claims := user.Claims.(*jwt.MapClaims)
+		UserID := int((*claims)["id"].(float64))
 		// var payment []entity.Payment
-		orderItems := []entity.OrderItem{}
-		err := e.Bind(&orderItems)
+		var orderItemsReq struct {
+			OrderItems      []entity.OrderItem `json:"order_items"`
+			ShippingAddress string             `json:"shipping_address"`
+			TotalShipping   string             `json:"total_shipping"`
+		}
+		if err := e.Bind(&orderItemsReq); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		// Set order_id for each order item and save to database
+		orderID, err := handler.OrdeUsecase.GetLastOrderID()
+
 		if err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]string{
 				"error": err.Error(),
 			})
 		}
-		// Set order_id for each order item and save to database
-		orderID, err := handler.OrdeUsecase.GetLastOrderID()
-
-		for _, item := range orderItems {
+		for _, item := range orderItemsReq.OrderItems {
 			item.OrderId = orderID
 			err = handler.OrderITemsUsecase.CreateOrderItems(item)
 			if err != nil {
@@ -45,24 +74,32 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 			}
 		}
 		// Calculate totalPrice and totalQty
-		totalPrice, totalQty, err := service.CalculateTotal(orderItems)
+		totalPrice, totalQty, err := service.CalculateTotal(orderItemsReq.OrderItems)
 		if err != nil {
 			return e.JSON(http.StatusBadRequest, map[string]string{
 				"error": err.Error(),
 			})
 		}
-		response := map[string]interface{}{
-			"order_items": orderItems,
-			"total_price": totalPrice,
-			"total_qty":   totalQty,
-		}
-		return e.JSON(http.StatusOK, response)
+		// declare variables order
+		order.ShippingAddress = orderItemsReq.ShippingAddress
+		order.TotalShipping = orderItemsReq.TotalShipping
+		order.CustomerID = uint(UserID)
+		order.TotalOrder = strconv.Itoa(totalPrice)
 
-		// // Create request body for Midtrans Snap API
-		// snapReq, err := handler.OrdeUsecase.GenerateSnapReq(orderID, UserID, totalPrice)
-		// if err != nil {
-		// 	return nil
-		// }
+		err = handler.OrdeUsecase.UpdateOrder(int(orderID), order)
+		if err != nil {
+			return e.JSON(500, echo.Map{
+				"error": err.Error(),
+			})
+		}
+
+		// Create request body for Midtrans Snap API
+		snapReq, err := handler.OrdeUsecase.GenerateSnapReq(orderID, UserID, totalPrice)
+		if err != nil {
+			return e.JSON(500, echo.Map{
+				"error": err.Error(),
+			})
+		}
 		// fmt.Println("================ Request with global config ================")
 		// service.SetupGlobalMidtransConfig()
 		// service.CreateTransactionWithGlobalConfig()
@@ -76,12 +113,11 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 
 		// fmt.Println("================ Request Snap URL ================")
 		// service.CreateUrlTransactionWithGateway(*snapReq)
-		// // Return response
-		// response := map[string]interface{}{
-		// 	"order_items": orderItems,
-		// 	"total_price": totalPrice,
-		// 	"total_qty":   totalQty,
-		// }
-		// return e.JSON(http.StatusOK, response)
+		// Return response
+		response := map[string]interface{}{
+			"total_price": snapReq,
+			"total_qty":   totalQty,
+		}
+		return e.JSON(http.StatusOK, response)
 	}
 }

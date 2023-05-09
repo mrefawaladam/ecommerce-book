@@ -28,8 +28,11 @@ var (
 	AuthHandler handler.AuthHandler
 	// transaction
 	transactionHandler handler.TransactionHandler
-	orderItemUsecase   usecase.OrderItemsUsecase
-	orderUsecase       usecase.OrderUsecase
+	// order
+	orderItemUsecase usecase.OrderItemsUsecase
+	orderItemRepo    repository.OrderItemsRepository
+	orderUsecase     usecase.OrderUsecase
+	orderRepo        repository.OrderRepository
 )
 
 func declare() {
@@ -45,6 +48,10 @@ func declare() {
 	storeUsecase = usecase.StoreUsecase{Repo: storeRepo}
 	storeHandler = handler.StoreHandler{StoreUsecase: storeUsecase}
 	// transaction
+	orderRepo = repository.OrderRepository{DB: db.DbMysql}
+	orderUsecase = usecase.OrderUsecase{OrderRepo: orderRepo, UserRepo: userRepo}
+	orderItemRepo = repository.OrderItemsRepository{DB: db.DbMysql}
+	orderItemUsecase = usecase.OrderItemsUsecase{Repo: orderItemRepo}
 	transactionHandler = handler.TransactionHandler{
 		Usecase:           userUsecase,
 		OrderITemsUsecase: orderItemUsecase,
