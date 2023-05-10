@@ -5,13 +5,12 @@ import (
 
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/coreapi"
-	"github.com/midtrans/midtrans-go/example"
 )
 
 var c coreapi.Client
 
 func initiateCoreApiClient() {
-	c.New(example.SandboxServerKey1, midtrans.Sandbox)
+	c.New("SB-Mid-server-x5fJwvwyo1cF2z5qGSD74Fsi", midtrans.Sandbox)
 }
 
 func CheckTransaction(OrderID string) (*coreapi.TransactionStatusResponse, error) {
@@ -36,6 +35,7 @@ func ApproveTransaction(OrderID string) (*coreapi.ChargeResponse, error) {
 	res, err := c.ApproveTransaction(OrderID)
 	if err != nil {
 		// do something on error handle
+		return nil, err
 	}
 	fmt.Println("Response: ", res)
 	return res, err

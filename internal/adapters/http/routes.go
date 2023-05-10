@@ -110,7 +110,13 @@ func InitRoutes() *echo.Echo {
 	customer.GET("/books", bookHandler.GetAllBooks())
 
 	// transactions
-	customer.POST("/checkout", transactionHandler.CheckoutTransaction())
+	customer.POST("/trasaction/checkout", transactionHandler.CheckoutTransaction())
+	customer.GET("/trasaction/check-trasaction/:id", transactionHandler.CheckTransaction())
+	customer.GET("/trasaction/check-status/:id", transactionHandler.CheckStatusB2B())
+	customer.GET("/trasaction/approval-trasaction/:id", transactionHandler.ApproveTransaction())
+	customer.GET("/trasaction/deny-transaction/:id", transactionHandler.DenyTransaction())
+	customer.GET("/trasaction/cencel-transaction/:id", transactionHandler.CancelTransaction())
+	customer.GET("/trasaction/cencel-expire-transaction/:id", transactionHandler.ExpireTransaction())
 
 	// get all ebooks
 	customer.GET("/books", bookHandler.GetAllBooks())

@@ -20,7 +20,7 @@ type TransactionHandler struct {
 	OrdeUsecase       usecase.OrderUsecase
 }
 
-func (handler StoreHandler) CheckTransaction() echo.HandlerFunc {
+func (handler TransactionHandler) CheckTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -33,7 +33,7 @@ func (handler StoreHandler) CheckTransaction() echo.HandlerFunc {
 	}
 }
 
-func (handler StoreHandler) CheckStatusB2B() echo.HandlerFunc {
+func (handler TransactionHandler) CheckStatusB2B() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -46,7 +46,7 @@ func (handler StoreHandler) CheckStatusB2B() echo.HandlerFunc {
 	}
 }
 
-func (handler StoreHandler) ApproveTransaction() echo.HandlerFunc {
+func (handler TransactionHandler) ApproveTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -54,12 +54,12 @@ func (handler StoreHandler) ApproveTransaction() echo.HandlerFunc {
 				"messages": "input id is not a number",
 			})
 		}
-		trasaction, err := service.ApproveTransaction(fmt.Sprint(orderId))
-		return e.JSON(http.StatusOK, trasaction)
+		service.ApproveTransaction("14")
+		return e.JSON(http.StatusOK, orderId)
 	}
 }
 
-func (handler StoreHandler) DenyTransaction() echo.HandlerFunc {
+func (handler TransactionHandler) DenyTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -72,7 +72,7 @@ func (handler StoreHandler) DenyTransaction() echo.HandlerFunc {
 	}
 }
 
-func (handler StoreHandler) CancelTransaction() echo.HandlerFunc {
+func (handler TransactionHandler) CancelTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
@@ -84,7 +84,7 @@ func (handler StoreHandler) CancelTransaction() echo.HandlerFunc {
 		return e.JSON(http.StatusOK, trasaction)
 	}
 }
-func (handler StoreHandler) ExpireTransaction() echo.HandlerFunc {
+func (handler TransactionHandler) ExpireTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))
 		if err != nil {
