@@ -26,6 +26,13 @@ var (
 	storeUsecase usecase.StoreUsecase
 	// auth
 	AuthHandler handler.AuthHandler
+	// transaction
+	transactionHandler handler.TransactionHandler
+	// order
+	orderItemUsecase usecase.OrderItemsUsecase
+	orderItemRepo    repository.OrderItemsRepository
+	orderUsecase     usecase.OrderUsecase
+	orderRepo        repository.OrderRepository
 )
 
 func declare() {
@@ -40,6 +47,15 @@ func declare() {
 	storeRepo = repository.StoreRepository{DB: db.DbMysql}
 	storeUsecase = usecase.StoreUsecase{Repo: storeRepo}
 	storeHandler = handler.StoreHandler{StoreUsecase: storeUsecase}
+	// transaction
+	orderRepo = repository.OrderRepository{DB: db.DbMysql}
+	orderUsecase = usecase.OrderUsecase{OrderRepo: orderRepo, UserRepo: userRepo}
+	orderItemRepo = repository.OrderItemsRepository{DB: db.DbMysql}
+	orderItemUsecase = usecase.OrderItemsUsecase{Repo: orderItemRepo}
+	transactionHandler = handler.TransactionHandler{
+		Usecase:           userUsecase,
+		OrderITemsUsecase: orderItemUsecase,
+		OrdeUsecase:       orderUsecase}
 
 	AuthHandler = handler.AuthHandler{Usecase: userUsecase}
 }
@@ -91,5 +107,19 @@ func InitRoutes() *echo.Echo {
 	// claims store
 	customer.POST("/stores/claims", storeHandler.CreateStore())
 	customer.GET("/books", bookHandler.GetAllBooks())
+	customer.GET("/books", bookHandler.GetAllBooks())
+
+	// transactions
+	customer.POST("/trasaction/checkout", transactionHandler.CheckoutTransaction())
+	customer.GET("/trasaction/check-trasaction/:id", transactionHandler.CheckTransaction())
+	customer.GET("/trasaction/check-status/:id", transactionHandler.CheckStatusB2B())
+	customer.GET("/trasaction/approval-trasaction/:id", transactionHandler.ApproveTransaction())
+	customer.GET("/trasaction/deny-transaction/:id", transactionHandler.DenyTransaction())
+	customer.GET("/trasaction/cencel-transaction/:id", transactionHandler.CancelTransaction())
+	customer.GET("/trasaction/cencel-expire-transaction/:id", transactionHandler.ExpireTransaction())
+
+	// get all ebooks
+	customer.GET("/books", bookHandler.GetAllBooks())
+
 	return e
 }
