@@ -24,6 +24,11 @@ func (usecase OrderUsecase) CreateOrder(user entity.Order) error {
 	return err
 }
 
+func (usecase OrderUsecase) CreatePayment(payment entity.Payment) error {
+	err := usecase.OrderRepo.CreatePayment(payment)
+	return err
+}
+
 func (usecase OrderUsecase) UpdateOrder(id int, order entity.Order) error {
 	err := usecase.OrderRepo.UpdateOrder(id, order)
 	return err

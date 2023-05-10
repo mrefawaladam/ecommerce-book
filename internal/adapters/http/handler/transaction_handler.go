@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"ebook/internal/application/service"
 	"ebook/internal/application/usecase"
@@ -19,24 +20,11 @@ type TransactionHandler struct {
 	OrdeUsecase       usecase.OrderUsecase
 }
 
-func (handler TransactionHandler) CheckoutTransactionss() echo.HandlerFunc {
-	return func(e echo.Context) error {
-
-		var orderItemsReq struct {
-			OrderItems []entity.OrderItem `json:"order_items"`
-		}
-		if err := e.Bind(&orderItemsReq); err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]string{
-				"error": err.Error(),
-			})
-		}
-		return e.JSON(http.StatusOK, orderItemsReq.OrderItems)
-	}
-}
-
 func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var order entity.Order
+		var payment entity.Payment
+
 		err := handler.OrdeUsecase.CreateOrder(order)
 		if err != nil {
 			return e.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create user"})
@@ -45,7 +33,6 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 		user := e.Get("user").(*jwt.Token)
 		claims := user.Claims.(*jwt.MapClaims)
 		UserID := int((*claims)["id"].(float64))
-		// var payment []entity.Payment
 		var orderItemsReq struct {
 			OrderItems      []entity.OrderItem `json:"order_items"`
 			ShippingAddress string             `json:"shipping_address"`
@@ -116,11 +103,25 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 		token := respPayment.Token
 		redirectURL := respPayment.RedirectURL
 
+		// create payment
+		now := time.Now()
+		currentDate := now.Format("2006-01-02")
+		paymentExpiry := now.Add(30 * time.Minute).Format("2006-01-02 15:04:05")
+
+		payment.PaymentToken = token
+		payment.PaymentType = "Midtrans"
+		payment.PaymentDate = currentDate
+		payment.PaymentExpiry = paymentExpiry
+		payment.PaymentStatus = "pending"
+		payment.OrderId = UserID
+
+		err = handler.OrdeUsecase.CreatePayment(payment)
 		// Return response
 		response := map[string]interface{}{
 			"transaction":  snapReq,
 			"tokenPayment": token,
 			"redirectURL":  redirectURL,
+			"totalQty":     totalQty,
 		}
 		return e.JSON(http.StatusOK, response)
 	}

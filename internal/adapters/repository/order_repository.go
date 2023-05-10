@@ -64,7 +64,10 @@ func (repo OrderRepository) CreateOrder(order entity.Order) error {
 	result := repo.DB.Create(&order)
 	return result.Error
 }
-
+func (repo OrderRepository) CreatePayment(payment entity.Payment) error {
+	result := repo.DB.Create(&payment)
+	return result.Error
+}
 func (repo OrderRepository) UpdateOrder(id int, order entity.Order) error {
 	result := repo.DB.Model(&order).Where("id = ?", id).Updates(&order)
 	return result.Error
