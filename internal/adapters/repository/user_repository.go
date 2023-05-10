@@ -21,12 +21,15 @@ func (repo UserRepository) GetAllUsers() ([]entity.User, error) {
 
 func (repo UserRepository) GetUser(id int) (entity.User, error) {
 	var users entity.User
-	result := repo.DB.Preload("Blogs", "deleted_at IS NULL").First(&users, id)
-	// result := repo.DB.First(&users, id)
-
+	result := repo.DB.First(&users, id)
 	return users, result.Error
 }
 
+func (repo UserRepository) GetAddressByID(id int) (entity.Address, error) {
+	var address entity.Address
+	result := repo.DB.Where("user_id = ?", id).First(&address)
+	return address, result.Error
+}
 func (repo UserRepository) CreateUser(user entity.User) error {
 	result := repo.DB.Create(&user)
 	return result.Error
