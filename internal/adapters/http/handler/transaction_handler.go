@@ -20,6 +20,82 @@ type TransactionHandler struct {
 	OrdeUsecase       usecase.OrderUsecase
 }
 
+func (handler StoreHandler) CheckTransaction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.CheckTransaction(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
+
+func (handler StoreHandler) CheckStatusB2B() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.CheckStatusB2B(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
+
+func (handler StoreHandler) ApproveTransaction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.ApproveTransaction(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
+
+func (handler StoreHandler) DenyTransaction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.DenyTransaction(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
+
+func (handler StoreHandler) CancelTransaction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.CancelTransaction(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
+func (handler StoreHandler) ExpireTransaction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		trasaction, err := service.ExpireTransaction(fmt.Sprint(orderId))
+		return e.JSON(http.StatusOK, trasaction)
+	}
+}
 func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		var order entity.Order
@@ -113,7 +189,7 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 		payment.PaymentDate = currentDate
 		payment.PaymentExpiry = paymentExpiry
 		payment.PaymentStatus = "pending"
-		payment.OrderId = UserID
+		payment.OrderId = orderID
 
 		err = handler.OrdeUsecase.CreatePayment(payment)
 		// Return response
