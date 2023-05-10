@@ -28,6 +28,8 @@ var (
 	AuthHandler handler.AuthHandler
 	// transaction
 	transactionHandler handler.TransactionHandler
+	// ongkir
+	ongkirHandler handler.OngkirHandler
 	// order
 	orderItemUsecase usecase.OrderItemsUsecase
 	orderItemRepo    repository.OrderItemsRepository
@@ -56,8 +58,11 @@ func declare() {
 		Usecase:           userUsecase,
 		OrderITemsUsecase: orderItemUsecase,
 		OrdeUsecase:       orderUsecase}
-
+	// Auth
 	AuthHandler = handler.AuthHandler{Usecase: userUsecase}
+	// order
+	ongkirHandler = handler.OngkirHandler{OrderUsecase: orderUsecase}
+
 }
 
 func InitRoutes() *echo.Echo {
@@ -117,6 +122,9 @@ func InitRoutes() *echo.Echo {
 	customer.GET("/trasaction/deny-transaction/:id", transactionHandler.DenyTransaction())
 	customer.GET("/trasaction/cencel-transaction/:id", transactionHandler.CancelTransaction())
 	customer.GET("/trasaction/cencel-expire-transaction/:id", transactionHandler.ExpireTransaction())
+
+	// raja onkir
+	customer.POST("/ongkir/calculate", ongkirHandler.CalculateOngkir())
 
 	// get all ebooks
 	customer.GET("/books", bookHandler.GetAllBooks())

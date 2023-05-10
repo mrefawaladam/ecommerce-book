@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/Bhinneka/go-rajaongkir v0.0.0-20180209093955-b24cf6077786 // indirect
 	github.com/bxcodec/faker/v3 v3.8.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
