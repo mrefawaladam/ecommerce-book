@@ -38,7 +38,7 @@ func CreateTransactionWithGlobalConfig() {
 	fmt.Println("Snap response", res)
 }
 
-func CreateTransaction(snapReq snap.Request) {
+func CreateTransaction(snapReq snap.Request) (*snap.Response, error) {
 	// Optional : here is how if you want to set append payment notification for this request
 	s.Options.SetPaymentAppendNotification("https://example.com/append")
 
@@ -51,6 +51,7 @@ func CreateTransaction(snapReq snap.Request) {
 		fmt.Println("Error :", err.GetMessage())
 	}
 	fmt.Println("Response : ", resp)
+	return resp, nil
 }
 
 func CreateTokenTransactionWithGateway(snapReq snap.Request) {

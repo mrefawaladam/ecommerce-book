@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -100,23 +101,26 @@ func (handler TransactionHandler) CheckoutTransaction() echo.HandlerFunc {
 				"error": err.Error(),
 			})
 		}
-		// fmt.Println("================ Request with global config ================")
-		// service.SetupGlobalMidtransConfig()
-		// service.CreateTransactionWithGlobalConfig()
+		fmt.Println("================ Request with global config ================")
+		service.SetupGlobalMidtransConfig()
+		service.CreateTransactionWithGlobalConfig()
 
-		// fmt.Println("================ Request with Snap Client ================")
-		// service.InitializeSnapClient()
-		// service.CreateTransaction(*snapReq)
+		fmt.Println("================ Request with Snap Client ================")
+		service.InitializeSnapClient()
+		respPayment, err := service.CreateTransaction(*snapReq)
+		if err != nil {
+			return e.JSON(500, echo.Map{
+				"error": err.Error(),
+			})
+		}
+		token := respPayment.Token
+		redirectURL := respPayment.RedirectURL
 
-		// fmt.Println("================ Request Snap token ================")
-		// service.CreateTokenTransactionWithGateway(*snapReq)
-
-		// fmt.Println("================ Request Snap URL ================")
-		// service.CreateUrlTransactionWithGateway(*snapReq)
 		// Return response
 		response := map[string]interface{}{
-			"total_price": snapReq,
-			"total_qty":   totalQty,
+			"transaction":  snapReq,
+			"tokenPayment": token,
+			"redirectURL":  redirectURL,
 		}
 		return e.JSON(http.StatusOK, response)
 	}

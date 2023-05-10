@@ -83,7 +83,7 @@ func (uc *OrderUsecase) GenerateSnapReq(OrderID uint, UserID int, TotalPrice int
 
 	// Check if the TotalPrice is equal to the sum of Price * Quantity
 	// if totalPrice != int64(TotalPrice) {
-	// 	return nil, fmt.Errorf("TotalPrice is not equal to the sum of Price * Quantity")
+	// 	return nil, fmt.Errorf("total price (%d) is not equal to the sum of price * quantity (%d)", totalPrice, int64(TotalPrice))
 	// }
 
 	// Create Snap Request object
