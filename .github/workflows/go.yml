@@ -17,8 +17,4 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           cd ecommerce-book
           git pull
-          sudo docker build -t go-application .
-          sudo docker stop go-application
-          sudo docker rm go-application
-          sudo docker run --name go-application -dp 8081:8080 go-application
-          sudo docker compose -f docker-compose.development.yml up -d --build
+          sudo docker compose -f docker-compose.production.yml up -d --build
