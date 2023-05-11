@@ -158,60 +158,62 @@ func (handler BookHandler) DeleteBook() echo.HandlerFunc {
 		})
 	}
 }
-func (h *BookHandler) FilterBooks(c echo.Context) error {
-	// ambil parameter pencarian dari query parameter
-	searchQuery := c.QueryParam("q")
+func (h BookHandler) FilterBooks() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// ambil parameter pencarian dari query parameter
+		searchQuery := c.QueryParam("q")
 
-	// ambil parameter filter terlaris dari query parameter
-	isBestSeller, err := strconv.ParseBool(c.QueryParam("best_seller"))
-	if err != nil {
-		isBestSeller = false
-	}
+		// ambil parameter filter terlaris dari query parameter
+		isBestSeller, err := strconv.ParseBool(c.QueryParam("best_seller"))
+		if err != nil {
+			isBestSeller = false
+		}
 
-	// lakukan pencarian buku berdasarkan judul dan/atau penulis
-	books, err := h.BookUsecase.SearchBooks(searchQuery)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "Internal Server Error",
-		})
-	}
-
-	// filter buku yang terlaris jika diminta
-	if isBestSeller {
-		var orderItems []entity.OrderItem
-		orderItems, err = h.OrderItemUsecase.GetBestSellingBooks()
+		// lakukan pencarian buku berdasarkan judul dan/atau penulis
+		books, err := h.BookUsecase.SearchBooks(searchQuery)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 				"message": "Internal Server Error",
 			})
 		}
 
-		// buat map untuk menghitung jumlah buku yang terjual
-		bookSoldMap := make(map[uint]int32)
-		for _, orderItem := range orderItems {
-			bookID, err := strconv.ParseUint(orderItem.BookId, 10, 64)
+		// filter buku yang terlaris jika diminta
+		if isBestSeller {
+			var orderItems []entity.OrderItem
+			orderItems, err = h.OrderItemUsecase.GetBestSellingBooks()
 			if err != nil {
-				// handle error
+				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"message": "Internal Server Error",
+				})
 			}
-			bookSoldMap[uint(bookID)] += orderItem.Quantity
+
+			// buat map untuk menghitung jumlah buku yang terjual
+			bookSoldMap := make(map[uint]int32)
+			for _, orderItem := range orderItems {
+				bookID, err := strconv.ParseUint(orderItem.BookId, 10, 64)
+				if err != nil {
+					// handle error
+				}
+				bookSoldMap[uint(bookID)] += orderItem.Quantity
+			}
+
+			// filter buku yang paling banyak terjual
+			maxSold := int32(0)
+			filteredBooks := make([]entity.Book, 0)
+			for _, book := range books {
+				if bookSoldMap[book.ID] > maxSold {
+					maxSold = bookSoldMap[book.ID]
+					filteredBooks = []entity.Book{book}
+				} else if bookSoldMap[book.ID] == maxSold {
+					filteredBooks = append(filteredBooks, book)
+				}
+			}
+
+			books = filteredBooks
 		}
 
-		// filter buku yang paling banyak terjual
-		maxSold := int32(0)
-		filteredBooks := make([]entity.Book, 0)
-		for _, book := range books {
-			if bookSoldMap[book.ID] > maxSold {
-				maxSold = bookSoldMap[book.ID]
-				filteredBooks = []entity.Book{book}
-			} else if bookSoldMap[book.ID] == maxSold {
-				filteredBooks = append(filteredBooks, book)
-			}
-		}
-
-		books = filteredBooks
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"data": books,
+		})
 	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"data": books,
-	})
 }
