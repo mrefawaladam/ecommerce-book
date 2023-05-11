@@ -32,7 +32,24 @@ func (handler TransactionHandler) CheckTransaction() echo.HandlerFunc {
 		return e.JSON(http.StatusOK, trasaction)
 	}
 }
+func (handler TransactionHandler) ReportTransasction() echo.HandlerFunc {
+	return func(e echo.Context) error {
+		orderId, err := strconv.Atoi(e.Param("id"))
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]interface{}{
+				"messages": "input id is not a number",
+			})
+		}
+		transactions, err := handler.OrderITemsUsecase.GetOrderItemByBook(orderId)
+		if err != nil {
+			return e.JSON(500, echo.Map{
+				"error": err.Error(),
+			})
+		}
 
+		return e.JSON(http.StatusOK, transactions)
+	}
+}
 func (handler TransactionHandler) CheckStatusB2B() echo.HandlerFunc {
 	return func(e echo.Context) error {
 		orderId, err := strconv.Atoi(e.Param("id"))

@@ -94,6 +94,8 @@ func InitRoutes() *echo.Echo {
 	seller.POST("/books", bookHandler.CreateBook())
 	seller.DELETE("/books/:id", bookHandler.DeleteBook())
 	seller.PUT("/books/:id", bookHandler.UpdateBook())
+	// report
+	seller.GET("/reports/:id", transactionHandler.ReportTransasction())
 
 	seller.GET("/stores/my/:id", storeHandler.GetStore())
 	seller.PUT("/stores/:id", storeHandler.UpdateStore())
