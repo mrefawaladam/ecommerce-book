@@ -44,7 +44,7 @@ func declare() {
 	// declare book management
 	bookRepo = repository.BookRepository{DB: db.DbMysql}
 	bookUsecase = usecase.BookUsecase{Repo: bookRepo}
-	bookHandler = handler.BookHandler{BookUsecase: bookUsecase}
+	bookHandler = handler.BookHandler{BookUsecase: bookUsecase, OrderItemUsecase: orderItemUsecase}
 	// declare store management
 	storeRepo = repository.StoreRepository{DB: db.DbMysql}
 	storeUsecase = usecase.StoreUsecase{Repo: storeRepo}
@@ -99,6 +99,8 @@ func InitRoutes() *echo.Echo {
 	seller.POST("/books", bookHandler.CreateBook())
 	seller.DELETE("/books/:id", bookHandler.DeleteBook())
 	seller.PUT("/books/:id", bookHandler.UpdateBook())
+	// report
+	seller.GET("/reports/:id", transactionHandler.ReportTransasction())
 
 	seller.GET("/stores/my/:id", storeHandler.GetStore())
 	seller.PUT("/stores/:id", storeHandler.UpdateStore())
@@ -122,9 +124,9 @@ func InitRoutes() *echo.Echo {
 	customer.GET("/trasaction/deny-transaction/:id", transactionHandler.DenyTransaction())
 	customer.GET("/trasaction/cencel-transaction/:id", transactionHandler.CancelTransaction())
 	customer.GET("/trasaction/cencel-expire-transaction/:id", transactionHandler.ExpireTransaction())
-
-	// raja onkir
-	customer.POST("/ongkir/calculate", ongkirHandler.CalculateOngkir())
+ 
+	customer.POST("/ongkir/calculate", ongkirHandler.CalculateOngkir()) 
+	customer.GET("/filter/:q", bookHandler.FilterBooks()) 
 
 	// get all ebooks
 	customer.GET("/books", bookHandler.GetAllBooks())
