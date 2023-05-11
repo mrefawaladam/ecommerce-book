@@ -17,4 +17,4 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           cd ecommerce-book
           git pull
-          docker-compose.development.yml
+          sudo docker-compose.development.yml
