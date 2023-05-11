@@ -9,7 +9,7 @@ services:
     environment:
       - DB_USERNAME=admin
       - DB_PASSWORD=adminadmin
-      - DB_DB=alta_agregasi
+      - DB_NAME=alta_agregasi
       - DB_HOST=godb.cvkjph0grufv.us-east-1.rds.amazonaws.com
       - DB_PORT=3306
     restart: on-failure
